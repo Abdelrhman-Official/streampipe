@@ -1,0 +1,1 @@
+# StreamPipe core module
