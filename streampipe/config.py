@@ -78,6 +78,11 @@ class ConfigManager:
     def get(self, key, default=None):
         return self.config.get(key, default)
 
+    def set(self, key, value):
+        """Set a config value and persist to disk."""
+        self.config[key] = value
+        self.save_config()
+
     def get_preset(self, name):
         """Resolves a preset by name. Builtin presets take precedence unless overridden in config."""
         preset = BUILTIN_PRESETS.get(name)

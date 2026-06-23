@@ -114,21 +114,31 @@ class QualityManager:
                     pass
 
         # Build video format selector
-        video_selector = "bestvideo"
-        if height_limit:
-            video_selector += f"[height<={height_limit}]"
-        
+        # For mp4, prefer H.264 (avc1) over AV1 for broad player compatibility
         if format_pref == "mp4":
-            video_selector += "[ext=mp4]"
+            h264_selector = "bestvideo[vcodec^=avc1]"
+            if height_limit:
+                h264_selector += f"[height<={height_limit}]"
+            h264_selector += "[ext=mp4]"
 
-        # Build audio format selector
-        audio_selector = "bestaudio"
-        if format_pref == "mp4":
-            audio_selector += "[ext=m4a]"
+            # Fallback: any mp4 video at the requested height (could be AV1)
+            fallback_selector = "bestvideo[ext=mp4]"
+            if height_limit:
+                fallback_selector += f"[height<={height_limit}]"
 
-        # Combined string
-        if format_pref == "mp4":
-            # For MP4 we prefer combining mp4 video + m4a audio, falling back to any mp4 format
-            return f"{video_selector}+{audio_selector}/{video_selector}+{bestaudio}/best[ext=mp4]"
+            audio_selector = "bestaudio[ext=m4a]"
+
+            # Priority: H.264+m4a → H.264+any audio → any mp4 video+audio → generic mp4
+            return (
+                f"{h264_selector}+{audio_selector}"
+                f"/{h264_selector}+bestaudio"
+                f"/{fallback_selector}+{audio_selector}"
+                f"/{fallback_selector}+bestaudio"
+                f"/best[ext=mp4]"
+            )
         else:
+            video_selector = "bestvideo"
+            if height_limit:
+                video_selector += f"[height<={height_limit}]"
+            audio_selector = "bestaudio"
             return f"{video_selector}+{audio_selector}/best"

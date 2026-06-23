@@ -1,0 +1,5 @@
+# Windows Desktop App dependencies
+customtkinter>=5.2.0
+
+# Mobile App dependencies
+kivy>=2.3.0
